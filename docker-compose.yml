@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: tcc_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: customersdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+    - ./Database:/docker-entrypoint-initdb.d
+    - postgres_data:/var/lib/postgresql/data
+
+  customerservice:
+    build:
+      context: ./Services/CustomerService
+      dockerfile: Dockerfile
+    container_name: customer_service
+    ports:
+      - "5001:8080"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

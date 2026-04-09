@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
 
   postgres:
@@ -11,20 +9,34 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-    - ./Database:/docker-entrypoint-initdb.d
-    - postgres_data:/var/lib/postgresql/data
+      - ./Database:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data
 
   customerservice:
     build:
-      context: ./Services/CustomerService
+      context: ./CustomerService   # ✅ corrigido
       dockerfile: Dockerfile
     container_name: customer_service
     ports:
       - "5001:8080"
     depends_on:
       - postgres
+    environment:
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=customersdb;Username=postgres;Password=postgres  
+
+  productservice:
+    build:
+      context: ./ProductService
+      dockerfile: Dockerfile
+    container_name: product_service
+    ports:
+      - "5002:8080"
+    depends_on:
+      - postgres
+    environment:
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=customersdb;Username=postgres;Password=postgres
 
 volumes:
   postgres_data:

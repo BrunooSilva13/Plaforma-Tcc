@@ -38,6 +38,28 @@ public class CustomerRepository
         return await connection.QueryFirstOrDefaultAsync<Customer>(sql, new { Id = id });
     }
 
+    public async Task<Customer?> GetByDocument(string document)
+    {
+        using var connection = _factory.CreateConnection();
+
+        var sql = @"
+        SELECT 
+            id,
+            name,
+            email,
+            phone,
+            document,
+            created_at as CreatedAt
+        FROM customers
+        WHERE document = @Document
+    ";
+
+        return await connection.QueryFirstOrDefaultAsync<Customer>(
+            sql,
+            new { Document = document }
+        );
+    }
+
     public async Task Create(Customer customer)
     {
         using var connection = _factory.CreateConnection();
@@ -62,12 +84,14 @@ public class CustomerRepository
         await connection.ExecuteAsync(sql, customer);
     }
 
-    public async Task Delete(Guid id)
+    public async Task<bool> Delete(Guid id)
     {
         using var connection = _factory.CreateConnection();
 
         var sql = "DELETE FROM customers WHERE id = @Id";
 
-        await connection.ExecuteAsync(sql, new { Id = id });
+        var rows = await connection.ExecuteAsync(sql, new { Id = id });
+
+        return rows > 0;
     }
 }

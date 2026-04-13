@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using CustomerService.Infrastructure.Repositories;
 using CustomerService.Domain;
+using CustomerService.Application;
+using CustomerService.Application.Services;
+
 
 namespace CustomerService.Controllers;
 
@@ -9,10 +12,16 @@ namespace CustomerService.Controllers;
 public class CustomersController : ControllerBase
 {
     private readonly CustomerRepository _repository;
+    private readonly CustomerAppService _service;
 
     public CustomersController(CustomerRepository repository)
     {
         _repository = repository;
+    }
+
+    public CustomersController(CustomerAppService service)
+    {
+        _service = service;
     }
 
     [HttpGet]
@@ -33,42 +42,108 @@ public class CustomersController : ControllerBase
         return Ok(customer);
     }
 
+    // ✅ CREATE com DTO + validação
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Customer customer)
+    public async Task<IActionResult> Create([FromBody] CreateCustomerRequest request)
     {
-        customer.Id = Guid.NewGuid();
-        customer.CreatedAt = DateTime.UtcNow;
+    
+        try
+        {
+            var customer = new Customer(
+                request.Name,
+                request.Email,
+                request.Phone,
+                request.Document
+            );
 
-        await _repository.Create(customer);
+            await _repository.Create(customer);
 
-        return CreatedAtAction(nameof(GetById), new { id = customer.Id }, customer);
+            return CreatedAtAction(nameof(GetById), new { id = customer.Id }, customer);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] Customer customer)
+    // ✅ PATCH nome
+    [HttpPatch("{id}/name")]
+    public async Task<IActionResult> UpdateName(Guid id, [FromBody] UpdateCustomerNameRequest request)
     {
-        var existing = await _repository.GetById(id);
+        var customer = await _repository.GetById(id);
 
-        if (existing == null)
+        if (customer == null)
             return NotFound();
 
-        customer.Id = id;
+        try
+        {
+            customer.ChangeName(request.Name);
 
-        await _repository.Update(customer);
+            await _repository.Update(customer);
 
-        return NoContent();
+            return Ok(customer);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
+    // ✅ PATCH email
+    [HttpPatch("{id}/email")]
+    public async Task<IActionResult> UpdateEmail(Guid id, [FromBody] UpdateCustomerEmailRequest request)
+    {
+        var customer = await _repository.GetById(id);
+
+        if (customer == null)
+            return NotFound();
+
+        try
+        {
+            customer.ChangeEmail(request.Email);
+
+            await _repository.Update(customer);
+
+            return Ok(customer);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    // ✅ PATCH phone
+    [HttpPatch("{id}/phone")]
+    public async Task<IActionResult> UpdatePhone(Guid id, [FromBody] UpdateCustomerPhoneRequest request)
+    {
+        var customer = await _repository.GetById(id);
+
+        if (customer == null)
+            return NotFound();
+
+        try
+        {
+            customer.ChangePhone(request.Phone);
+
+            await _repository.Update(customer);
+
+            return Ok(customer);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    // ✅ DELETE
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var existing = await _repository.GetById(id);
+        var deleted = await _repository.Delete(id);
 
-        if (existing == null)
+        if (!deleted)
             return NotFound();
-
-        await _repository.Delete(id);
 
         return NoContent();
     }
-}
+}    

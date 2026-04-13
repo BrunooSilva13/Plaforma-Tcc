@@ -30,13 +30,74 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(Product product)
+    public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
     {
-        product.Id = Guid.NewGuid();
-        product.CreatedAt = DateTime.UtcNow;
+        try
+        {
+            var product = new Product(request.Name, request.Price);
 
-        await _repository.Create(product);
+            await _repository.Create(product);
 
-        return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPatch("{id}/price")]
+    public async Task<IActionResult> UpdatePrice(Guid id, [FromBody] UpdatePriceRequest request)
+    {
+        var product = await _repository.GetById(id);
+
+        if (product == null)
+            return NotFound();
+
+        try
+        {
+            product.ChangePrice(request.Price);
+
+            await _repository.Update(product);
+
+            return Ok(product); 
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPatch("{id}/name")]
+    public async Task<IActionResult> UpdateName(Guid id, [FromBody] UpdateNameRequest request)
+    {
+        var product = await _repository.GetById(id);
+
+        if (product == null)
+            return NotFound();
+
+        try
+        {
+            product.ChangeName(request.Name);
+
+            await _repository.Update(product);
+
+            return Ok(product);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var deleted = await _repository.Delete(id);
+
+        if (!deleted)
+            return NotFound();
+
+        return NoContent();
     }
 }

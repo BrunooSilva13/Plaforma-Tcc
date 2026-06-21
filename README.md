@@ -32,3 +32,20 @@ Plataforma-Tcc/
 └ CustomerService/
 
 
+CustomerService
+│
+├── Domain
+│   ├── Entities
+│   ├── Interfaces
+│   └── Exceptions
+│
+├── Application
+│   ├── Requests
+│   ├── Responses
+│   └── Services
+│
+├── Infrastructure
+│   ├── Database
+│   └── Repositories
+│
+└── Controllers

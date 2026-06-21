@@ -1,9 +1,12 @@
 using Dapper;
 using CustomerService.Domain;
+using CustomerService.Domain.Interfaces;
+
+
 
 namespace CustomerService.Infrastructure.Repositories;
 
-public class CustomerRepository
+public class CustomerRepository : ICustomerRepository
 {
     private readonly DbConnectionFactory _factory;
 
@@ -16,7 +19,7 @@ public class CustomerRepository
     {
         using var connection = _factory.CreateConnection();
 
-        var sql = "SELECT * FROM customers";
+        var sql = "SELECT id, name, email, phone, document, created_at as CreatedAt FROM customers";
 
         return await connection.QueryAsync<Customer>(sql);
     }
@@ -78,7 +81,6 @@ public class CustomerRepository
                 SET name = @Name,
                     email = @Email,
                     phone = @Phone,
-                    document = @Document
                 WHERE id = @Id";
 
         await connection.ExecuteAsync(sql, customer);
@@ -93,5 +95,31 @@ public class CustomerRepository
         var rows = await connection.ExecuteAsync(sql, new { Id = id });
 
         return rows > 0;
+    }
+
+    public async Task<bool> ExistsByDocument(string document)
+    {
+        using var connection = _factory.CreateConnection();
+
+        var sql = "SELECT 1 FROM customers WHERE document = @Document LIMIT 1";
+
+        var result = await connection.QueryFirstOrDefaultAsync<int?>(
+            sql,
+            new { Document = document });
+
+        return result.HasValue;
+    }
+
+    public async Task<bool> ExistsByEmail(string email)
+    {
+        using var connection = _factory.CreateConnection();
+
+        var sql = "SELECT 1 FROM customers WHERE email = @Email";
+
+        var result = await connection.QueryFirstOrDefaultAsync<int?>(
+            sql,
+            new { Email = email });
+
+        return result.HasValue;
     }
 }

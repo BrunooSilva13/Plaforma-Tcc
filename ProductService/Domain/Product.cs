@@ -1,3 +1,5 @@
+namespace ProductService.Domain;
+
 public class Product
 {
     public Guid Id { get; private set; }

@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using CustomerService.Infrastructure.Repositories;
-using CustomerService.Domain;
-using CustomerService.Application;
+using CustomerService.Application.Requests;
 using CustomerService.Application.Services;
-
+using CustomerService.Application;
 
 namespace CustomerService.Controllers;
 
@@ -11,13 +9,7 @@ namespace CustomerService.Controllers;
 [Route("customers")]
 public class CustomersController : ControllerBase
 {
-    private readonly CustomerRepository _repository;
     private readonly CustomerAppService _service;
-
-    public CustomersController(CustomerRepository repository)
-    {
-        _repository = repository;
-    }
 
     public CustomersController(CustomerAppService service)
     {
@@ -27,14 +19,15 @@ public class CustomersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        var customers = await _repository.GetAll();
+        var customers = await _service.GetAll();
+
         return Ok(customers);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var customer = await _repository.GetById(id);
+        var customer = await _service.GetById(id);
 
         if (customer == null)
             return NotFound();
@@ -42,23 +35,19 @@ public class CustomersController : ControllerBase
         return Ok(customer);
     }
 
-    // ✅ CREATE com DTO + validação
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateCustomerRequest request)
+    public async Task<IActionResult> Create(
+        [FromBody] CreateCustomerRequest request)
     {
-    
         try
         {
-            var customer = new Customer(
-                request.Name,
-                request.Email,
-                request.Phone,
-                request.Document
+            var customer = await _service.Create(request);
+
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = customer.Id },
+                customer
             );
-
-            await _repository.Create(customer);
-
-            return CreatedAtAction(nameof(GetById), new { id = customer.Id }, customer);
         }
         catch (ArgumentException ex)
         {
@@ -66,20 +55,17 @@ public class CustomersController : ControllerBase
         }
     }
 
-    // ✅ PATCH nome
     [HttpPatch("{id}/name")]
-    public async Task<IActionResult> UpdateName(Guid id, [FromBody] UpdateCustomerNameRequest request)
+    public async Task<IActionResult> UpdateName(
+        Guid id,
+        [FromBody] UpdateCustomerNameRequest request)
     {
-        var customer = await _repository.GetById(id);
-
-        if (customer == null)
-            return NotFound();
-
         try
         {
-            customer.ChangeName(request.Name);
+            var customer = await _service.UpdateName(id, request);
 
-            await _repository.Update(customer);
+            if (customer == null)
+                return NotFound();
 
             return Ok(customer);
         }
@@ -89,20 +75,17 @@ public class CustomersController : ControllerBase
         }
     }
 
-    // ✅ PATCH email
     [HttpPatch("{id}/email")]
-    public async Task<IActionResult> UpdateEmail(Guid id, [FromBody] UpdateCustomerEmailRequest request)
+    public async Task<IActionResult> UpdateEmail(
+        Guid id,
+        [FromBody] UpdateCustomerEmailRequest request)
     {
-        var customer = await _repository.GetById(id);
-
-        if (customer == null)
-            return NotFound();
-
         try
         {
-            customer.ChangeEmail(request.Email);
+            var customer = await _service.UpdateEmail(id, request);
 
-            await _repository.Update(customer);
+            if (customer == null)
+                return NotFound();
 
             return Ok(customer);
         }
@@ -112,20 +95,17 @@ public class CustomersController : ControllerBase
         }
     }
 
-    // ✅ PATCH phone
     [HttpPatch("{id}/phone")]
-    public async Task<IActionResult> UpdatePhone(Guid id, [FromBody] UpdateCustomerPhoneRequest request)
+    public async Task<IActionResult> UpdatePhone(
+        Guid id,
+        [FromBody] UpdateCustomerPhoneRequest request)
     {
-        var customer = await _repository.GetById(id);
-
-        if (customer == null)
-            return NotFound();
-
         try
         {
-            customer.ChangePhone(request.Phone);
+            var customer = await _service.UpdatePhone(id, request);
 
-            await _repository.Update(customer);
+            if (customer == null)
+                return NotFound();
 
             return Ok(customer);
         }
@@ -135,15 +115,14 @@ public class CustomersController : ControllerBase
         }
     }
 
-    // ✅ DELETE
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await _repository.Delete(id);
+        var deleted = await _service.Delete(id);
 
         if (!deleted)
             return NotFound();
 
         return NoContent();
     }
-}    
+}

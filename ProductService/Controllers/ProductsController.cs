@@ -93,11 +93,11 @@ public class ProductsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await _repository.Delete(id);
-
-        if (!deleted)
+        var product = await _repository.GetById(id);
+        if (product == null)
             return NotFound();
 
+        await _repository.Delete(id);
         return NoContent();
     }
 }

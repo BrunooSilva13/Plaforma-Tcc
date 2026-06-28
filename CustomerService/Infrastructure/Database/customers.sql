@@ -4,5 +4,5 @@ CREATE TABLE IF NOT EXISTS customers (
     email TEXT NOT NULL,
     phone TEXT,
     document TEXT UNIQUE,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

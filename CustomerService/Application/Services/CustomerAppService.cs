@@ -1,6 +1,7 @@
 using CustomerService.Domain;
 using CustomerService.Domain.Interfaces;
 using CustomerService.Application.Requests;
+using CustomerService.Domain.Entities;
 
 namespace CustomerService.Application.Services;
 

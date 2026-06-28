@@ -1,5 +1,5 @@
 using Dapper;
-using CustomerService.Domain;
+using CustomerService.Domain.Entities;
 using CustomerService.Domain.Interfaces;
 
 
@@ -80,7 +80,7 @@ public class CustomerRepository : ICustomerRepository
         var sql = @"UPDATE customers 
                 SET name = @Name,
                     email = @Email,
-                    phone = @Phone,
+                    phone = @Phone
                 WHERE id = @Id";
 
         await connection.ExecuteAsync(sql, customer);

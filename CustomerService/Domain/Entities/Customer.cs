@@ -1,6 +1,7 @@
 using System;
+using CustomerService.Domain.Interfaces;
 
-namespace CustomerService.Domain.Interfaces;
+namespace CustomerService.Domain.Entities;
 
 public class Customer
 {

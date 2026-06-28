@@ -1,4 +1,4 @@
-namespace ProductService.Domain;
+namespace ProductService.Domain.Entities;
 
 public class Product
 {
@@ -7,6 +7,8 @@ public class Product
     public decimal Price { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
+    private Product() { }
+    
     public Product(string name, decimal price)
     {
         ValidateName(name);

@@ -1,7 +1,8 @@
-using CustomerService.Domain.Interfaces;
+using CustomerService.Domain.Interfaces;    
+using CustomerService.Domain.Entities;
 
 
-namespace CustomerService.Domain;
+namespace CustomerService.Domain.Interfaces;
 
 public interface ICustomerRepository
 {
